@@ -9,7 +9,7 @@ import time
 api_url = 'https://be.video-id.3.26.13.166.sslip.io/identify'
 
 # Directory containing video files
-directory = r'E:\sharex\ShareX\Screenshots\2025-03\make up'
+directory = r'E:\sharex\ShareX\Screenshots\2025-03\age'
 
 # Collect all .mp4 files in the directory
 video_files = [f for f in os.listdir(directory) if f.lower().endswith('.mp4')]
@@ -100,13 +100,13 @@ for video in video_files:
     # Analyze response IDs and counts
     if response_json and 'video' in response_json:
         vid_field = response_json['video'].get('id', '')
-        vid_code = vid_field.split(' (')[0]
-        if '(User found)' in vid_field:
-            data['user_found'] += 1
-            data['found_ids'][vid_code] += 1
-        elif '(Created new user)' in vid_field:
+        vid_code = vid_field.split(' (')[0].strip()
+        if '(Created a new user)' in vid_field:
             data['created_new'] += 1
             data['new_ids'][vid_code] += 1
+        elif '(User found)' in vid_field:
+            data['user_found'] += 1
+            data['found_ids'][vid_code] += 1
 
     time.sleep(30)
 
@@ -136,12 +136,20 @@ with open('results_status.txt', 'a', encoding='utf-8') as status_file:
                 for id_code, count in stats['new_ids'].items():
                     status_file.write(f"     - {id_code}: {count} times\n")
             # Pass/Fail logic
-            union_ids = set(stats['found_ids'].keys()) | set(stats['new_ids'].keys())
-            if (len(union_ids) == 1 and stats['total'] > 0) or (stats['found_ids'] and stats['new_ids'] and stats['found_ids'].keys() == stats['new_ids'].keys()):
-                only_id = list(union_ids)[0]
-                status_file.write(f"   ✔️ {testcase} user {user} pass - ID: {only_id}\n")
+            if stats['found_ids'] and stats['new_ids'] and stats['found_ids'].keys() == stats['new_ids'].keys():
+                status_file.write(f"   ✔️ {testcase} user {user} pass\n")
+            elif stats['found_ids'] and not stats['new_ids']:
+                if len(stats['found_ids']) == 1:
+                    status_file.write(f"   ✔️ {testcase} user {user} pass\n")
+                else:
+                    status_file.write(f"   ❌ {testcase} user {user} fail\n")
+            elif stats['new_ids'] and not stats['found_ids']:
+                if len(stats['new_ids']) == 1:
+                    status_file.write(f"   ✔️ {testcase} user {user} pass\n")
+                else:
+                    status_file.write(f"   ❌ {testcase} user {user} fail\n")
             else:
                 status_file.write(f"   ❌ {testcase} user {user} fail\n")
         status_file.write("\n")
 
-print("✅ Finished writing results_log.txt and results_status.txt")
+print("✅ Finished Test ✅")
