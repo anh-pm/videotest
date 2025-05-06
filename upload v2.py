@@ -9,7 +9,7 @@ import time
 api_url = 'https://be.video-id.3.26.13.166.sslip.io/identify'
 
 # Directory containing video files
-directory = r'E:\sharex\ShareX\Screenshots\2025-03\age'
+directory = r'E:\sharex\ShareX\Screenshots\2025-03\random'
 
 # Collect all .mp4 files in the directory
 video_files = [f for f in os.listdir(directory) if f.lower().endswith('.mp4')]
@@ -24,6 +24,7 @@ results = defaultdict(lambda: defaultdict(lambda: {
     'total': 0,
     'user_found': 0,
     'created_new': 0,
+    'failed_extract_face': 0,
     'found_ids': defaultdict(int),
     'new_ids': defaultdict(int)
 }))
@@ -101,14 +102,17 @@ for video in video_files:
     if response_json and 'video' in response_json:
         vid_field = response_json['video'].get('id', '')
         vid_code = vid_field.split(' (')[0].strip()
-        if '(Created a new user)' in vid_field:
+
+        if 'Failed to extract face' in vid_field:
+            data['failed_extract_face'] += 1
+        elif '(Created a new user)' in vid_field:
             data['created_new'] += 1
             data['new_ids'][vid_code] += 1
         elif '(User found)' in vid_field:
             data['user_found'] += 1
             data['found_ids'][vid_code] += 1
 
-    time.sleep(30)
+    time.sleep(60)
 
 # Append summary to results_status.txt
 with open('results_status.txt', 'a', encoding='utf-8') as status_file:
@@ -125,6 +129,8 @@ with open('results_status.txt', 'a', encoding='utf-8') as status_file:
             status_file.write(f"   📁 Total files: {stats['total']}\n")
             status_file.write(f"   ✅ User found: {stats['user_found']}\n")
             status_file.write(f"   🆕 Created new user: {stats['created_new']}\n")
+            if stats['failed_extract_face']:
+                status_file.write(f"   ⚠️ Failed to extract face: {stats['failed_extract_face']} times\n")
             # List User Found IDs
             if stats['found_ids']:
                 status_file.write("   Found IDs:\n")
