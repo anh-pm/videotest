@@ -14,6 +14,19 @@ import time
 # Supported Video Formats:
 #   - .mp4 (currently supported and filtered)
 #   - Other formats may be rejected by the API; use mp4 for consistency.
+#
+# === Summary Section Notes ===
+# Summary block in results_status.txt explains upload success/failure:
+# * 📊 Summary:
+#    📁 Total files: <total uploads attempted>
+#    ✅ Success: <HTTP 200 uploads>
+#    ❌ Failed: <non-200 responses>
+#
+# Each user entry also includes:
+#    📁 Total files: count for that user
+#    ✅ User found: matched an existing user
+#    🆕 Created new user: new user was created
+#    ⚠️ Failed to extract face: times face could not be detected (does NOT affect pass/fail)
 
 # API endpoint to upload videos
 api_url = 'https://be.video-id.3.26.13.166.sslip.io/identify'
